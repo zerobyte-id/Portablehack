@@ -1,0 +1,40 @@
+      <div class="p-1 mt-5">
+        <div class="spinner-border text-success" id="loading-spinner" role="status"><span class="visually-hidden">Loading...</span></div>
+        {% if response.host is not none %}   
+            <h3 class="text-white fw-bolder">NMAP Open-Port result from <span>{{ response.host }}</span></h3>
+        {% endif %}
+      </div>
+      <div class="text-white table-responsive" id="dataTable">
+        {% for result in response['ports'] %}
+          <div class="border-top border-success border-5"></div>
+          <div class="p-2 border border-success border-1 border-top-0 mb-4">
+            <table class="table table-dark table-hover">
+              <tbody>
+                {% for row in result %}
+                    <tr>
+                      <th class="text-success text-start text-capitalize fw-bolder" style="width:15%">{{ row }}</th>
+                      <td class="text-light bg-dark p-1 text-start"><span style="word-break: break-all;">
+                      {% if result[row] is iterable and result[row] is not string %}
+                        {% set iterableresult = result[row] %}
+                        {% for iters in result[row] %}
+                          <div class="border-bottom border-1 border-secondary p-1">[ <span class="text-success">{{ iters }}</span> ] {{ result[row][iters] }}</div>
+                        {% endfor %}
+                      {% else %}
+                        {{ result[row] }}
+                      {% endif %}
+                      </span></td>
+                    </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        {% endfor %}
+      </div>
+    </div>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js" integrity="sha384-geWF76RCwLtnZ8qwWowPQNguL3RmwHVBC9FhGdlKrxdiJJigb/j/68SIy3Te4Bkz" crossorigin="anonymous"></script>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script type="text/javascript">
+      $(document).ready(function() {
+        $("#scanInput").prop("disabled", !1), $("#scanButton").prop("disabled", !1), $("#loading-spinner").hide();
+      });
+    </script>

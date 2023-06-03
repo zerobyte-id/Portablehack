@@ -1,0 +1,52 @@
+version: '3'
+
+services:
+  redis:
+    image: redis:7.0.8-bullseye
+    container_name: redis-server
+    ports:
+      - 6379:6379
+    volumes:
+      - ./redis-data:/data
+    networks:
+      - portablehack-network
+    environment:
+      - REDIS_MAXMEMORY=8gb
+      - REDIS_MAXMEMORY_POLICY=allkeys-lru
+    command: redis-server --bind 0.0.0.0 --requirepass password
+    mem_limit: 8gb
+
+  mongodb:
+    image: mongo:6.0.4
+    container_name: mongodb-server
+    ports:
+      - 27017:27017
+    volumes:
+      - ./mongo-data:/data/db
+      - ./mongod.conf:/etc/mongodb/mongod.conf:ro
+    networks:
+      - portablehack-network
+    environment:
+      - MONGO_INITDB_ROOT_USERNAME=username
+      - MONGO_INITDB_ROOT_PASSWORD=password
+    command: mongod --config /etc/mongodb/mongod.conf
+
+  portablehackwebservice:
+    build:
+      context: .
+      dockerfile: ./Dockerfile
+    image: portablehackwebservice:0.1
+    container_name: portablehackwebservice
+    ports:
+      - 5000:5000
+    volumes:
+      - .:/app
+    networks:
+      - portablehack-network
+    entrypoint: ["python3", "/app/main.py"]
+
+
+networks:
+  portablehack-network:
+    name: portablehack-network
+    driver: bridge
