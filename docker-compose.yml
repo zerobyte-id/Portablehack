@@ -3,9 +3,7 @@ version: '3'
 services:
   redis:
     image: redis:7.0.8-bullseye
-    container_name: redis-server
-    ports:
-      - 6379:6379
+    container_name: "${REDIS_HOST}"
     volumes:
       - ./redis-data:/data
     networks:
@@ -13,27 +11,26 @@ services:
     environment:
       - REDIS_MAXMEMORY=8gb
       - REDIS_MAXMEMORY_POLICY=allkeys-lru
+    env_file: .env
     logging:
       driver: "json-file"
       options:
         max-file: "5"
         max-size: "10m"
-    command: redis-server --bind 0.0.0.0 --requirepass password
+    command: redis-server --bind 0.0.0.0 --requirepass ${REDIS_PASS}
     mem_limit: 8gb
 
   mongodb:
     image: mongo:6.0.4
-    container_name: mongodb-server
-    ports:
-      - 27017:27017
+    container_name: "${MONGODB_HOST}"
     volumes:
       - ./mongo-data:/data/db
       - ./mongod.conf:/etc/mongodb/mongod.conf:ro
     networks:
       - portablehack-network
     environment:
-      - MONGO_INITDB_ROOT_USERNAME=username
-      - MONGO_INITDB_ROOT_PASSWORD=password
+      - MONGO_INITDB_ROOT_USERNAME=${MONGODB_USER}
+      - MONGO_INITDB_ROOT_PASSWORD=${MONGODB_PASS}
     logging:
       driver: "json-file"
       options:
@@ -48,18 +45,18 @@ services:
     image: portablehackwebservice:0.1
     container_name: portablehackwebservice
     ports:
-      - 5000:5000
+      - ${LISTEN_PORT}:${LISTEN_PORT}
     volumes:
       - .:/app
     networks:
       - portablehack-network
+    env_file: .env
     logging:
       driver: "json-file"
       options:
         max-file: "5"
         max-size: "10m"
     entrypoint: ["python3", "/app/main.py"]
-
 
 networks:
   portablehack-network:

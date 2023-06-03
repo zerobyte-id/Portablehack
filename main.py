@@ -20,16 +20,41 @@ import requests
 
 warnings.filterwarnings("ignore")
 
-REDIS_URI = os.getenv('REDIS_URI', 'redis://:password@redis-server:6379/0')
-MONGODB_URI = os.getenv('MONGODB_URI', 'mongodb://username:password@mongodb-server:27017/')
-MONGODB_NAME = os.getenv('MONGODB_NAME', 'portablehack')
+### REDIS ENVIRONMENT - STARTS ###
+try:
+	REDIS_HOST = os.getenv('REDIS_HOST', 'redis-server')
+	REDIS_PORT = os.getenv('REDIS_PORT', 6379)
+	REDIS_PASS = os.getenv('REDIS_PASS', 'password')
+	REDIS_DB = os.getenv('REDIS_DB', 0)
+	REDIS_URI = 'redis://:{password}@{hostname}:{port}/{db}'.format(hostname=REDIS_HOST, port=REDIS_PORT, password=REDIS_PASS, db=REDIS_DB)
+	redis_connect = redis.Redis.from_url(REDIS_URI)
+except Exception:
+	logger.error(traceback.format_exc())
+	logger.error('REDIS WAS ERROR!')
+	exit(1)
+### REDIS ENVIRONMENT - ENDS ###
+
+### MONGODEB ENVIRONMENT - STARTS ###
+try:
+	MONGODB_USER = os.getenv('MONGODB_USER', 'username')
+	MONGODB_PASS = os.getenv('MONGODB_PASS', 'password')
+	MONGODB_HOST = os.getenv('MONGODB_HOST', 'mongodb-server')
+	MONGODB_PORT = os.getenv('MONGODB_PORT', 27017)
+	MONGODB_NAME = os.getenv('MONGODB_NAME', 'portablehack')
+	MONGODB_URI = 'mongodb://{username}:{password}@{hostname}:{port}/'.format(username=MONGODB_USER, password=MONGODB_PASS, hostname=MONGODB_HOST, port=int(MONGODB_PORT))
+	mongo_client = MongoClient(MONGODB_URI)
+	mongodb = mongo_client[MONGODB_NAME]
+except Exception:
+	logger.error(traceback.format_exc())
+	logger.error('MONGODB WAS ERROR!')
+	exit(1)
+### MONGODEB ENVIRONMENT - ENDS ###
+
+### WEBSERVICE ENVIRONMENT - STARTS ###
 LISTEN_ADDR = os.getenv('LISTEN_ADDR', '0.0.0.0')
 LISTEN_PORT = int(os.getenv('LISTEN_PORT', 5000))
 APP_DEBUG = eval(os.getenv('APP_DEBUG', 'True'))
-
-mongo_client = MongoClient(MONGODB_URI)
-mongodb = mongo_client[MONGODB_NAME]
-redis_connect = redis.Redis.from_url(REDIS_URI)
+### WEBSERVICE ENVIRONMENT - ENDS ###
 
 def now():
 	TZ = pytz.timezone('Asia/Jakarta')
