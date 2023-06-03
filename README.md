@@ -12,7 +12,7 @@ sudo docker-compose up -d
 
 Dashboard access `http://your-instance:5000/`.
 
-## Credit
+## Credits
 **This application is supported by several applications in it**
 - [NMAP](https://nmap.org/)
 - [Nuclei (@projectdiscovery)](https://github.com/projectdiscovery/nuclei)
