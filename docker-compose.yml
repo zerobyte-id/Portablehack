@@ -13,6 +13,11 @@ services:
     environment:
       - REDIS_MAXMEMORY=8gb
       - REDIS_MAXMEMORY_POLICY=allkeys-lru
+    logging:
+      driver: "json-file"
+      options:
+        max-file: "5"
+        max-size: "10m"
     command: redis-server --bind 0.0.0.0 --requirepass password
     mem_limit: 8gb
 
@@ -29,6 +34,11 @@ services:
     environment:
       - MONGO_INITDB_ROOT_USERNAME=username
       - MONGO_INITDB_ROOT_PASSWORD=password
+    logging:
+      driver: "json-file"
+      options:
+        max-file: "5"
+        max-size: "10m"
     command: mongod --config /etc/mongodb/mongod.conf
 
   portablehackwebservice:
@@ -43,6 +53,11 @@ services:
       - .:/app
     networks:
       - portablehack-network
+    logging:
+      driver: "json-file"
+      options:
+        max-file: "5"
+        max-size: "10m"
     entrypoint: ["python3", "/app/main.py"]
 
 

@@ -235,7 +235,7 @@ def nmap_get_ip(ip):
 @app.route('/')
 def dashboard_index():
 	_header = render_template('_header.html')
-	content = '<h1>Welcome to the Jungle!</h1>'
+	content = '<div class="p-3"><h1>Welcome to the Jungle!</h1></div>'
 	_footer = render_template('_footer.html')
 	return _header + content + _footer
 
