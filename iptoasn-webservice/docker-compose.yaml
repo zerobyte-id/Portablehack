@@ -1,0 +1,22 @@
+version: '3'
+
+services:
+
+  asnlookup-ws:
+    build:
+      context: .
+      dockerfile: ./Dockerfile
+    image: asnlookup-ws:0.1
+    entrypoint: /iptoasn-entrypoint.sh
+    container_name: asnlookup-ws
+    restart: always
+    environment:
+      - IPTOASN_PORT=${IPTOASN_PORT}
+      - IPTOASN_DBURL=${IPTOASN_DBURL}
+    networks:
+      - attack-surface-infra
+
+networks:
+  attack-surface-infra:
+    name: attack-surface-infra
+    driver: bridge

@@ -10,5 +10,13 @@ WORKDIR /app
 COPY . /app/
 ENV TZ=Asia/Jakarta
 RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
-RUN pip3 install --upgrade pip \
-    && pip3 install requests pytz Flask pandas pymongo redis ipaddress xmltodict pyyaml
+RUN pip3 install --upgrade pip
+RUN pip3 install requests
+RUN pip3 install pytz
+RUN pip3 install Flask
+RUN pip3 install pandas
+RUN pip3 install pymongo
+RUN pip3 install redis
+RUN pip3 install ipaddress
+RUN pip3 install xmltodict
+RUN pip3 install pyyaml

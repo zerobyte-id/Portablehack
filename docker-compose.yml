@@ -38,6 +38,19 @@ services:
         max-size: "10m"
     command: mongod --config /etc/mongodb/mongod.conf
 
+  iptoasn-webservice:
+    build:
+      context: .
+      dockerfile: ./iptoasn-webservice/Dockerfile
+    image: "iptoasn-webservice:1.0"
+    entrypoint: /iptoasn-entrypoint.sh
+    container_name: "${IPTOASN_HOST}"
+    environment:
+      - IPTOASN_PORT=${IPTOASN_PORT}
+      - IPTOASN_DBURL=${IPTOASN_DBURL}
+    networks:
+      - portablehack-network
+
   portablehackwebservice:
     build:
       context: .

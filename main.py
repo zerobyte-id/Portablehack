@@ -255,12 +255,28 @@ def nmap_get_ip(ip):
 
 
 
+########## IPTOASN SECTIONS [START] ##########
+
+@app.route('/api/v1/asnumber/get/<ip>', methods=['GET'])
+def api_v1_asnumber_get_by_ip(ip):
+	try:
+		IPTOASN_HOST = os.getenv('IPTOASN_HOST', 'iptoasn-webservice')
+		req = requests.get('http://{IPTOASN_HOST}/api/v1/asnumber/get/{IP}'.format(IPTOASN_HOST=IPTOASN_HOST, IP=ip))
+		return jsonify({'status': 'success', 'code': 200, 'response': req.json()}), 200
+	except Exception:
+		logger.error(traceback.format_exc())
+		return {'status': 'error', 'code': 500, 'response': 'unknown error please contact your administrator'}, 500
+
+########## IPTOASN SECTIONS [END] ##########
+
+
+
 ########## DASHBOARD INDEX [START] ##########
 
 @app.route('/')
 def dashboard_index():
 	_header = render_template('_header.html')
-	content = '<div class="p-3"><h1>Welcome to the Jungle!</h1></div>'
+	content = '<div class="p-5"><h1>Welcome to the Jungle!</h1></div>'
 	_footer = render_template('_footer.html')
 	return _header + content + _footer
 
