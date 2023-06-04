@@ -32,6 +32,11 @@ sudo docker-compose up -d
 
 Dashboard access `http://your-instance:5000/`.
 
+## TODO LIST 
+- [ ] Status running nmap/nuclei
+- [ ] ASNumber Check (IP address)
+- [ ] Subdomain Scanner
+
 ## Credits
 
 **This application is supported by several applications, big thanks to**
