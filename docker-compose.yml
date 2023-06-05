@@ -65,7 +65,6 @@ services:
       - ${LISTEN_PORT}:${LISTEN_PORT}
     volumes:
       - .:/app
-      - ./go-volume:/go
     networks:
       - portablehack-network
     env_file: .env
