@@ -51,16 +51,21 @@ services:
     networks:
       - portablehack-network
 
-  portablehackwebservice:
+  portablehack-webservice:
     build:
       context: .
       dockerfile: ./Dockerfile
-    image: portablehackwebservice:0.1
-    container_name: portablehackwebservice
+    depends_on:
+      - iptoasn-webservice
+      - mongodb
+      - redis
+    image: portablehack-webservice:0.1
+    container_name: portablehack-webservice
     ports:
       - ${LISTEN_PORT}:${LISTEN_PORT}
     volumes:
       - .:/app
+      - ./go-volume:/go
     networks:
       - portablehack-network
     env_file: .env
