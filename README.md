@@ -40,3 +40,5 @@ Dashboard access `http://your-instance:5000/`.
 - [iptoasn-webservice (@jedisct1)](https://github.com/jedisct1/iptoasn-webservice)
 - [Naabu (@projectdiscovery)](https://github.com/projectdiscovery/naabu)
 - [Smap (@s0md3v)](https://github.com/s0md3v/Smap)
+- [Subfinder (@projectdiscovery)](https://github.com/projectdiscovery/subfinder)
+- [Dnsx (@projectdiscovery)](https://github.com/projectdiscovery/dnsx)
