@@ -34,6 +34,8 @@ Dashboard access `http://your-instance:5000/`.
 
 ## Credits
 
-**This application is supported by several applications, big thanks to**
+**This application is built by several other applications:**
 - [NMAP](https://nmap.org/)
 - [Nuclei (@projectdiscovery)](https://github.com/projectdiscovery/nuclei)
+- [iptoasn-webservice (@jedisct1)](https://github.com/jedisct1/iptoasn-webservice)
+- [Naabu (@projectdiscovery)](https://github.com/projectdiscovery/naabu)
