@@ -163,6 +163,21 @@ app.config['JSON_SORT_KEYS'] = False
 app.config['JSONIFY_PRETTYPRINT_REGULAR'] = True
 
 
+########## PROCESSRUNNING SECTIONS HERE [START] ##########
+
+@app.route('/api/v1/processrunning/get', methods=['GET'])
+def api_v1_processrunning_get():
+	try:
+		redis_keys = redis_connect.keys(pattern='*')
+		redis_keys = [ redis_key.decode("utf-8") for redis_key in redis_keys ]
+		return jsonify({'status': 'success', 'code': 200, 'response': list(redis_keys)}), 200
+	except Exception:
+		logger.error(traceback.format_exc())
+		return {'status': 'error', 'code': 500, 'response': 'unknown error please contact your administrator'}, 500
+
+########## PROCESSRUNNING SECTIONS HERE [END] ##########
+
+
 ########## DOMAINRECON SECTIONS HERE [START] ##########
 
 # API - DOMAINRECON SCAN ENDPOINT
