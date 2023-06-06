@@ -5,6 +5,7 @@ from modules.validatehttp import *
 from modules.nuclei_scanner import *
 from modules.nmap_service_scanner import *
 from modules.naabu_scanner import *
+from modules.shodansmap_scanner import *
 from modules.logging import *
 from flask import Flask, request, jsonify, render_template, escape
 from pymongo import MongoClient, UpdateOne, DESCENDING
@@ -268,7 +269,7 @@ def api_v1_openport_get_by_id(ip):
 		logger.error(traceback.format_exc())
 		return {'status': 'error', 'code': 500, 'response': 'unknown error please contact your administrator'}, 500
 
-# DASBOARD - PORT-SCAN RESULTS
+# DASHBOARD - PORT-SCAN RESULTS
 @app.route('/openport')
 def openport():
 	_header = render_template('_header.html')
@@ -276,7 +277,7 @@ def openport():
 	_footer = render_template('_footer.html')
 	return _header + content + _footer
 
-# DASBOARD - PORT-SCAN GET DETAIL BY IP
+# DASHBOARD - PORT-SCAN GET DETAIL BY IP
 @app.route('/openport/get/<ip>')
 def openport_get_ip(ip):
 	req = requests.get(request.url_root + '/api/v1/openport/get/{ip}'.format(ip=ip))
@@ -286,6 +287,29 @@ def openport_get_ip(ip):
 	return _header + content + _footer
 
 ########## NMAP SECTIONS HERE [END] ##########
+
+
+########## SHODAN SMAP HERE [START] ##########
+
+# API - SHODAN SMAP
+@app.route('/api/v1/shodansmap/get/<target>', methods=['GET'])
+def api_v1_shodansmap_get_by_target(target):
+	try:
+		result = shodansmap_scan(target)
+		return jsonify({'status': 'success', 'code': 200, 'response': result}), 200
+	except Exception:
+		logger.error(traceback.format_exc())
+		return {'status': 'error', 'code': 500, 'response': 'unknown error please contact your administrator'}, 500
+
+# DASHBOARD - SHODAN SMAP
+@app.route('/shodansmap')
+def shodansmap():
+	_header = render_template('_header.html')
+	content = render_template('shodansmap.html')
+	_footer = render_template('_footer.html')
+	return _header + content + _footer
+
+########## SHODAN SMAP HERE [END] ##########
 
 
 ########## IPTOASN SECTIONS [START] ##########
@@ -308,7 +332,7 @@ def api_v1_asnumber_get_by_ip(ip):
 @app.route('/')
 def dashboard_index():
 	_header = render_template('_header.html')
-	content = '<div class="p-5"><h1>Welcome to the Jungle!</h1></div>'
+	content = '<div class="p-5"><h1 class="fw-bolder text-success">Welcome to the Jungle!</h1><h1 class="fw-bolder text-secondary">We got fun and games!</h1></div>'
 	_footer = render_template('_footer.html')
 	return _header + content + _footer
 
