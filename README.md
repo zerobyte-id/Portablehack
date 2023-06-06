@@ -39,3 +39,4 @@ Dashboard access `http://your-instance:5000/`.
 - [Nuclei (@projectdiscovery)](https://github.com/projectdiscovery/nuclei)
 - [iptoasn-webservice (@jedisct1)](https://github.com/jedisct1/iptoasn-webservice)
 - [Naabu (@projectdiscovery)](https://github.com/projectdiscovery/naabu)
+- [Smap (@s0md3v)](https://github.com/s0md3v/Smap)
