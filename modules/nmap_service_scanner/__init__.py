@@ -7,11 +7,11 @@ import subprocess
 import os
 import random
 
-def nmap_portscan(target):
+def nmap_service_scan(target, portcsv):
 	try:
 		NMAP_BIN = os.getenv('NMAP_BIN', '/usr/bin/nmap')
-		XML_OUTPUT = '/tmp/nmapportscan-{rand}{rand2}.xml'.format(rand=random.randint(10000, 99999), rand2=random.randint(10000, 99999))
-		subprocess.run(['{}'.format(NMAP_BIN), '-p', '-', '-Pn', '-sV', '-oX', '{XML_OUTPUT}'.format(XML_OUTPUT=XML_OUTPUT), '{target}'.format(target=target), '--open'], capture_output=True, text=True)
+		XML_OUTPUT = '/tmp/nmap-service-scan-{rand}{rand2}.xml'.format(rand=random.randint(10000, 99999), rand2=random.randint(10000, 99999))
+		subprocess.run(['{}'.format(NMAP_BIN), '-p', '{}'.format(portcsv), '-Pn', '-sV', '-oX', '{XML_OUTPUT}'.format(XML_OUTPUT=XML_OUTPUT), '{target}'.format(target=target), '--open'], capture_output=True, text=True)
 		xml_file = open(XML_OUTPUT)
 		xml_content = xml_file.read()
 		xml_file.close()

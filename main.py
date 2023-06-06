@@ -3,7 +3,7 @@
 import warnings
 from modules.validatehttp import *
 from modules.nuclei_scanner import *
-from modules.nmap_scanner import *
+from modules.nmap_service_scanner import *
 from modules.naabu_scanner import *
 from modules.logging import *
 from flask import Flask, request, jsonify, render_template, escape
@@ -70,18 +70,31 @@ def validateip(ip_addr):
 	except ValueError:
 		return False
 
-def NmapScan(target):
+def GetPortFromMongoCSV(target):
 	try:
-		results = nmap_portscan(target)
+		mongo_get_port = mongodb['openports'].find({'address': target}, {'_id': False, 'port': True})
+		ports = []
+		[ ports.append(row['port']) for row in mongo_get_port ]
+		ports = ','.join(str(port) for port in ports)
+		return ports
+	except Exception:
+		logger.error(traceback.format_exc())
+		return False
+
+def NmapServiceScan(target, portcsv):
+	try:
+		results = nmap_service_scan(target, portcsv)
 		for result in results:
 			try:
+				result['_id'] = hashlib.md5(str(result['address'] + ':' + str(result['port'])).encode()).hexdigest()
 				result['timestamp'] = now()
-				mongodb['openports'].update_one({"address": result['address'], "port": result['port']}, {"$set": result}, upsert=True)
+				mongodb['openports'].update_one({"_id": result['_id']}, {"$set": result}, upsert=True)
 			except Exception:
 				pass
 		redis_connect.delete('portscan-process-running:{target}'.format(target=target))
 		return True
 	except Exception:
+		logger.error(traceback.format_exc())
 		redis_connect.delete('portscan-process-running:{target}'.format(target=target))
 		return False
 
@@ -90,13 +103,22 @@ def PortScan(target):
 		results = naabu_scan(target)
 		for result in results:
 			try:
+				result['_id'] = hashlib.md5(str(result['address'] + ':' + str(result['port'])).encode()).hexdigest()
 				result['timestamp'] = now()
-				mongodb['openports'].update_one({"address": result['address'], "port": result['port']}, {"$set": result}, upsert=True)
+				mongodb['openports'].insert_one({"_id": result['_id']}, {"$set": result}, upsert=True)
 			except Exception:
+				logger.error(traceback.format_exc())
 				pass
+		try:
+			portcsv = GetPortFromMongoCSV(target)
+			NmapServiceScan(target, portcsv)
+		except Exception:
+			logger.error(traceback.format_exc())
+			pass
 		redis_connect.delete('portscan-process-running:{target}'.format(target=target))
 		return True
 	except Exception:
+		logger.error(traceback.format_exc())
 		redis_connect.delete('portscan-process-running:{target}'.format(target=target))
 		return False
 
@@ -114,7 +136,6 @@ def NucleiScan(input_target):
 	except Exception:
 		redis_connect.delete('nuclei-process-running:{target}'.format(target=input_target))
 		return False
-
 
 app = Flask(__name__)
 app.config['JSON_SORT_KEYS'] = False
