@@ -4,6 +4,7 @@ import warnings
 from modules.validatehttp import *
 from modules.nuclei_scanner import *
 from modules.nmap_scanner import *
+from modules.naabu_scanner import *
 from modules.logging import *
 from flask import Flask, request, jsonify, render_template, escape
 from pymongo import MongoClient, UpdateOne, DESCENDING
@@ -75,13 +76,28 @@ def NmapScan(target):
 		for result in results:
 			try:
 				result['timestamp'] = now()
-				mongodb['nmap_openports'].update_one({"address": result['address'], "port": result['port']}, {"$set": result}, upsert=True)
+				mongodb['openports'].update_one({"address": result['address'], "port": result['port']}, {"$set": result}, upsert=True)
 			except Exception:
 				pass
-		redis_connect.hdel('nmapprocess', target, 1)
+		redis_connect.delete('portscan-process-running:{target}'.format(target=target))
 		return True
 	except Exception:
-		redis_connect.hdel('nmapprocess', target, 1)
+		redis_connect.delete('portscan-process-running:{target}'.format(target=target))
+		return False
+
+def PortScan(target):
+	try:
+		results = naabu_scan(target)
+		for result in results:
+			try:
+				result['timestamp'] = now()
+				mongodb['openports'].update_one({"address": result['address'], "port": result['port']}, {"$set": result}, upsert=True)
+			except Exception:
+				pass
+		redis_connect.delete('portscan-process-running:{target}'.format(target=target))
+		return True
+	except Exception:
+		redis_connect.delete('portscan-process-running:{target}'.format(target=target))
 		return False
 
 def NucleiScan(input_target):
@@ -93,12 +109,11 @@ def NucleiScan(input_target):
 			result['input-value'] = input_target
 			result_json = json.dumps(result)
 			mongodb['nuclei_results'].update_one({"_id": result['_id']}, {"$set": result}, upsert=True)
-		redis_connect.hdel('nucleiprocess', input_target, 1)
+		redis_connect.delete('nuclei-process-running:{target}'.format(target=input_target))
 		return True
 	except Exception:
-		redis_connect.hdel('nucleiprocess', input_target, 1)
+		redis_connect.delete('nuclei-process-running:{target}'.format(target=input_target))
 		return False
-
 
 
 app = Flask(__name__)
@@ -106,11 +121,10 @@ app.config['JSON_SORT_KEYS'] = False
 app.config['JSONIFY_PRETTYPRINT_REGULAR'] = True
 
 
-
 ########## NUCLEI SECTIONS HERE [START] ##########
 
 # API - NUCLEI SCAN ENDPOINT
-@app.route('/api/v1/nuclei/scan', methods=['POST'])
+@app.route('/api/v1/nucleivs/scan', methods=['POST'])
 def api_v1_nuclei_scan():
 	try:
 		get_json = request.get_json(force=True)
@@ -123,7 +137,7 @@ def api_v1_nuclei_scan():
 		return {'status': 'invalid', 'code': 400, 'response': 'could not connect to {}'.format(target)}, 400
 
 	# Check, is there still the same process running?
-	check_task = redis_connect.hget('nucleiprocess', input_target)
+	check_task = redis_connect.get('nuclei-process-running:{target}'.format(target=input_target))
 	if check_task:
 		return jsonify({'status': 'rejected', 'code': 400, 'response': '{} is still running'.format(input_target)}), 400
 
@@ -131,14 +145,14 @@ def api_v1_nuclei_scan():
 	try:
 		scan_thread = threading.Thread(target=NucleiScan, name="Nuclei Scanner Worker", args=(input_target,))
 		scan_thread.start()
-		redis_connect.hset('nucleiprocess', input_target, 1)
+		redis_connect.set('nuclei-process-running:{target}'.format(target=input_target), 'active')
 		return jsonify({'status': 'started', 'code': 200, 'response': 'scanning {}...'.format(input_target)}), 200
 	except Exception:
 		logger.error(traceback.format_exc())
 		return {'status': 'error', 'code': 500, 'response': 'unknown error please contact your administrator'}, 500
 
 # API - NUCLEI RESULTS ENDPOINT
-@app.route('/api/v1/nuclei/results', methods=['GET'])
+@app.route('/api/v1/nucleivs/results', methods=['GET'])
 def api_v1_nuclei_results():
 	try:
 		data = mongodb['nuclei_results'].find({}, {'_id': True, 'input-value': True, 'finding': '$info.name', 'severity': '$info.severity', 'timestamp': True}).sort('timestamp', DESCENDING)
@@ -148,7 +162,7 @@ def api_v1_nuclei_results():
 		return {'status': 'error', 'code': 500, 'response': 'unknown error please contact your administrator'}, 500
 
 # API - NUCLEI GET DETAIL BY ID
-@app.route('/api/v1/nuclei/get/<_id>', methods=['GET'])
+@app.route('/api/v1/nucleivs/get/<_id>', methods=['GET'])
 def api_v1_nuclei_get_by_id(_id):
 	try:
 		try:
@@ -163,7 +177,7 @@ def api_v1_nuclei_get_by_id(_id):
 		return {'status': 'error', 'code': 500, 'response': 'unknown error please contact your administrator'}, 500
 
 # DASHBOARD - NUCLEI RESULTS
-@app.route('/nuclei')
+@app.route('/nucleivs')
 def nuclei():
 	_header = render_template('_header.html')
 	content = render_template('nuclei.html')
@@ -171,9 +185,9 @@ def nuclei():
 	return _header + content + _footer
 
 # DASHBOARD - NUCLEI DETAIL BY ID
-@app.route('/nuclei/get/<_id>')
+@app.route('/nucleivs/get/<_id>')
 def nuclei_get_ip(_id):
-	req = requests.get(request.url_root + '/api/v1/nuclei/get/{_id}'.format(_id=_id))
+	req = requests.get(request.url_root + '/api/v1/nucleivs/get/{_id}'.format(_id=_id))
 	_header = render_template('_header.html')
 	content = render_template('nuclei-get.html', response=req.json()['response'])
 	_footer = render_template('_footer.html')
@@ -182,12 +196,11 @@ def nuclei_get_ip(_id):
 ########## NUCLEI SECTIONS HERE [END] ##########
 
 
+########## PORT-SCAN SECTIONS HERE [START] ##########
 
-########## NMAP SECTIONS HERE [START] ##########
-
-# API - NMAP SCAN ENDPOINT
-@app.route('/api/v1/nmap/scan', methods=['POST'])
-def api_v1_nmap_scan():
+# API - PORT-SCAN SCAN ENDPOINT
+@app.route('/api/v1/openport/scan', methods=['POST'])
+def api_v1_openport_scan():
 	try:
 		get_json = request.get_json(force=True)
 		target = get_json['target']
@@ -197,62 +210,61 @@ def api_v1_nmap_scan():
 	if validateip(target) == False:
 		return {'status': 'invalid', 'code': 400, 'response': 'could not connect to {}'.format(target)}, 400
 
-	check_task = redis_connect.hget('nmapprocess', target)
+	check_task = redis_connect.get('portscan-process-running:{target}'.format(target=target))
 	if check_task:
 		return jsonify({'status': 'rejected', 'code': 400, 'response': '{} is still running'.format(target)}), 400
 	try:
-		scan_thread = threading.Thread(target=NmapScan, name="NMAP Port Scanner Worker", args=(target,))
+		scan_thread = threading.Thread(target=PortScan, name="Naabu Port Scanner Worker", args=(target,))
 		scan_thread.start()
-		redis_connect.hset('nmapprocess', target, 1)
+		redis_connect.set('portscan-process-running:{target}'.format(target=target), 'active')
 		return jsonify({'status': 'started', 'code': 200, 'response': 'scanning {}...'.format(target)}), 200
 	except Exception:
 		logger.error(traceback.format_exc())
 		return {'status': 'error', 'code': 500, 'response': 'unknown error please contact your administrator'}, 500
 
-# API - NMAP RESULTS
-@app.route('/api/v1/nmap/results', methods=['GET'])
-def api_v1_nmap_results():
+# API - PORT-SCAN RESULTS
+@app.route('/api/v1/openport/results', methods=['GET'])
+def api_v1_openport_results():
 	try:
-		data = mongodb['nmap_openports'].find({}, {'_id': False, 'address': True, 'port': True, 'protocol': True, 'service': '$service.@name', 'timestamp': True}).sort('timestamp', DESCENDING)
+		data = mongodb['openports'].find({}, {'_id': False, 'address': True, 'port': True, 'protocol': True, 'service': '$service.@name', 'timestamp': True}).sort('timestamp', DESCENDING)
 		return jsonify({'status': 'success', 'code': 200, 'response': list(data)}), 200
 	except Exception:
 		logger.error(traceback.format_exc())
 		return {'status': 'error', 'code': 500, 'response': 'unknown error please contact your administrator'}, 500
 
-# API - NMAP GET DETAIL BY IP
-@app.route('/api/v1/nmap/get/<ip>', methods=['GET'])
-def api_v1_nmap_get_by_id(ip):
+# API - PORT-SCAN GET DETAIL BY IP
+@app.route('/api/v1/openport/get/<ip>', methods=['GET'])
+def api_v1_openport_get_by_id(ip):
 	try:
 		try:
 			check = ip
 		except Exception:
 			return {'status': 'invalid', 'code': 400, 'response': 'there is no [_id] provided'}, 400
 
-		data = mongodb['nmap_openports'].find({'address': ip}, {'_id': False, 'address': False})
+		data = mongodb['openports'].find({'address': ip}, {'_id': False, 'address': False})
 		return jsonify({'status': 'success', 'code': 200, 'response': {'host': ip, 'ports': list(data)}}), 200
 	except Exception:
 		logger.error(traceback.format_exc())
 		return {'status': 'error', 'code': 500, 'response': 'unknown error please contact your administrator'}, 500
 
-# DASBOARD - NMAP RESULTS
-@app.route('/nmap')
-def nmap():
+# DASBOARD - PORT-SCAN RESULTS
+@app.route('/openport')
+def openport():
 	_header = render_template('_header.html')
-	content = render_template('nmap.html')
+	content = render_template('openport.html')
 	_footer = render_template('_footer.html')
 	return _header + content + _footer
 
-# DASBOARD - NMAP GET DETAIL BY IP
-@app.route('/nmap/get/<ip>')
-def nmap_get_ip(ip):
-	req = requests.get(request.url_root + '/api/v1/nmap/get/{ip}'.format(ip=ip))
+# DASBOARD - PORT-SCAN GET DETAIL BY IP
+@app.route('/openport/get/<ip>')
+def openport_get_ip(ip):
+	req = requests.get(request.url_root + '/api/v1/openport/get/{ip}'.format(ip=ip))
 	_header = render_template('_header.html')
-	content = render_template('nmap-get.html', response=req.json()['response'])
+	content = render_template('openport-get.html', response=req.json()['response'])
 	_footer = render_template('_footer.html')
 	return _header + content + _footer
 
 ########## NMAP SECTIONS HERE [END] ##########
-
 
 
 ########## IPTOASN SECTIONS [START] ##########
@@ -268,7 +280,6 @@ def api_v1_asnumber_get_by_ip(ip):
 		return {'status': 'error', 'code': 500, 'response': 'unknown error please contact your administrator'}, 500
 
 ########## IPTOASN SECTIONS [END] ##########
-
 
 
 ########## DASHBOARD INDEX [START] ##########

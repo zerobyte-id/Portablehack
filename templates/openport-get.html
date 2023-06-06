@@ -1,7 +1,7 @@
       <div class="p-1 mt-5">
         <div class="spinner-border text-success" id="loading-spinner" role="status"><span class="visually-hidden">Loading...</span></div>
         {% if response.host is not none %}   
-            <h3 class="text-white fw-bolder">NMAP Open-Port result from <span>{{ response.host }}</span></h3>
+            <h3 class="text-white fw-bolder">Discovered Port of <span>{{ response.host }}</span></h3>
         {% endif %}
       </div>
       <div class="text-white table-responsive" id="dataTable">

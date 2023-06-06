@@ -1,6 +1,6 @@
 # Portablehack
 
-Portablehack is a open-source penetration test tool designed to simplify the process of assessing the security. Web-based and easy to use.
+Portablehack is a web-based open-source penetration test tool designed to simplify the process of assessing the security.
 
 ## Installation
 

@@ -1,5 +1,5 @@
       <div class="p-3 mb-3">
-        <h1 class="p-3 text-success text-calculator">Nmap</h1>
+        <h1 class="p-3 text-success text-calculator">Port Scanner</h1>
         <p class="text-white">Open Ports and Services Discovery.</p>
         <form id="formElem">
           <div class="input-group mb-3"><span class="input-group-text bg-success text-white border-success"><svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-swords" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
@@ -34,16 +34,16 @@
     <script type="text/javascript">
       $(document).ready(function() {
         $("#scanInput").prop("disabled", !1), $("#scanButton").prop("disabled", !1), $("#loading-spinner").hide(), $.ajax({
-          url: "/api/v1/nmap/results",
+          url: "/api/v1/openport/results",
           dataType: "json",
           success: function(e) {
             $.each(e.response, function(e, t) {
               var s = $("<tr>");
               s.append($("<td>").text(t["address"]));
-              s.append($('<td class="text-center">').text(t.port + '/' + t.protocol));
+              s.append($('<td class="text-center">').text(t.port));
               s.append($("<td>").text(t.service));
               s.append($('<td class="text-center">').text(t.timestamp));
-              s.append($('<td class="text-center">').html('<a class="btn btn-success p-0 px-2" href="/nmap/get/' + t.address + '" target="_blank">view</a>'));
+              s.append($('<td class="text-center">').html('<a class="btn btn-success p-0 px-2" href="/openport/get/' + t.address + '" target="_blank">view</a>'));
               $("#dataTable tbody").append(s);
             }), $("#dataTable").DataTable()
           }
@@ -52,7 +52,7 @@
           var t = $(this).find('input[name="target"]').val();
           try {
             var s = await $.ajax({
-              url: "/api/v1/nmap/scan",
+              url: "/api/v1/openport/scan",
               method: "POST",
               headers: {
                 "Content-Type": "application/json"

@@ -34,12 +34,12 @@
     <script type="text/javascript">
       $(document).ready(function() {
         $("#scanInput").prop("disabled", !1), $("#scanButton").prop("disabled", !1), $("#loading-spinner").hide(), $.ajax({
-          url: "/api/v1/nuclei/results",
+          url: "/api/v1/nucleivs/results",
           dataType: "json",
           success: function(e) {
             $.each(e.response, function(e, t) {
               var s = $("<tr>");
-              s.append($("<td>").text(t["input-value"])), s.append($('<td class="text-center">').text(t.severity.toUpperCase())), s.append($("<td>").text(t.finding)), s.append($('<td class="text-center">').text(t.timestamp)), s.append($('<td class="text-center">').html('<a class="btn btn-success p-0 px-2" href="/nuclei/get/' + t._id + '" target="_blank">view</a>')), $("#dataTable tbody").append(s)
+              s.append($("<td>").text(t["input-value"])), s.append($('<td class="text-center">').text(t.severity.toUpperCase())), s.append($("<td>").text(t.finding)), s.append($('<td class="text-center">').text(t.timestamp)), s.append($('<td class="text-center">').html('<a class="btn btn-success p-0 px-2" href="/nucleivs/get/' + t._id + '" target="_blank">view</a>')), $("#dataTable tbody").append(s)
             }), $("#dataTable").DataTable()
           }
         }), $("#formElem").on("submit", async function(e) {
@@ -47,7 +47,7 @@
           var t = $(this).find('input[name="target"]').val();
           try {
             var s = await $.ajax({
-              url: "/api/v1/nuclei/scan",
+              url: "/api/v1/nucleivs/scan",
               method: "POST",
               headers: {
                 "Content-Type": "application/json"
