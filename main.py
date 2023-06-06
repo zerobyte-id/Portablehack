@@ -6,6 +6,8 @@ from modules.nuclei_scanner import *
 from modules.nmap_service_scanner import *
 from modules.naabu_scanner import *
 from modules.shodansmap_scanner import *
+from modules.domainrecon.subfinder_scanner import *
+from modules.domainrecon.dnsx_scanner import *
 from modules.logging import *
 from flask import Flask, request, jsonify, render_template, escape
 from pymongo import MongoClient, UpdateOne, DESCENDING
@@ -82,6 +84,24 @@ def GetPortFromMongoCSV(target):
 		logger.error(traceback.format_exc())
 		return False
 
+def SubdomainScan(target):
+	try:
+		subdomains = subfinder_scan(target)
+		for subdomain in subdomains:
+			try:
+				dns = dnsx_scan(subdomain)
+				if dns is not False:
+					dns['_id'] = hashlib.md5(str('{}'.format(dns['host'])).encode()).hexdigest()
+					dns['timestamp'] = now()
+					mongodb['list_domains'].update_one({"_id": dns['_id']}, {"$set": dns}, upsert=True)
+			except Exception:
+				pass
+		redis_connect.delete('domainrecon-process-running:{target}'.format(target=target))
+		return True
+	except Exception:
+		redis_connect.delete('domainrecon-process-running:{target}'.format(target=target))
+		return False
+
 def NmapServiceScan(target, portcsv):
 	try:
 		results = nmap_service_scan(target, portcsv)
@@ -141,6 +161,50 @@ def NucleiScan(input_target):
 app = Flask(__name__)
 app.config['JSON_SORT_KEYS'] = False
 app.config['JSONIFY_PRETTYPRINT_REGULAR'] = True
+
+
+########## DOMAINRECON SECTIONS HERE [START] ##########
+
+# API - DOMAINRECON SCAN ENDPOINT
+@app.route('/api/v1/domainrecon/scan', methods=['POST'])
+def api_v1_domainrecon_scan():
+	try:
+		get_json = request.get_json(force=True)
+		target = get_json['target']
+	except Exception:
+		return {'status': 'invalid', 'code': 400, 'response': 'there is no [target] provided'}, 400
+
+	#input_target = validatehttp(target)
+	#if input_target == False:
+	#	return {'status': 'invalid', 'code': 400, 'response': 'could not connect to {}'.format(target)}, 400
+	input_target = target
+
+	# Check, is there still the same process running?
+	check_task = redis_connect.get('domainrecon-process-running:{target}'.format(target=input_target))
+	if check_task:
+		return jsonify({'status': 'rejected', 'code': 400, 'response': '{} is still running'.format(input_target)}), 400
+
+	# Run a new scan
+	try:
+		scan_thread = threading.Thread(target=SubdomainScan, name="SubdomainScan Scanner Worker", args=(input_target,))
+		scan_thread.start()
+		redis_connect.set('domainrecon-process-running:{target}'.format(target=input_target), 'active')
+		return jsonify({'status': 'started', 'code': 200, 'response': 'scanning {}...'.format(input_target)}), 200
+	except Exception:
+		logger.error(traceback.format_exc())
+		return {'status': 'error', 'code': 500, 'response': 'unknown error please contact your administrator'}, 500
+
+# API - DOMAINRECON RESULTS ENDPOINT
+@app.route('/api/v1/domainrecon/results', methods=['GET'])
+def api_v1_domainrecon_results():
+	try:
+		data = mongodb['list_domains'].find({}, {'_id': False}).sort('timestamp', DESCENDING)
+		return jsonify({'status': 'success', 'code': 200, 'response': list(data)}), 200
+	except Exception:
+		logger.error(traceback.format_exc())
+		return {'status': 'error', 'code': 500, 'response': 'unknown error please contact your administrator'}, 500
+
+########## DOMAINRECON SECTIONS HERE [END] ##########
 
 
 ########## NUCLEI SECTIONS HERE [START] ##########

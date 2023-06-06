@@ -5,6 +5,7 @@ RUN go install -v github.com/projectdiscovery/nuclei/v2/cmd/nuclei@latest
 RUN go install -v github.com/projectdiscovery/naabu/v2/cmd/naabu@latest
 RUN go install -v github.com/projectdiscovery/dnsx/cmd/dnsx@latest
 RUN go install -v github.com/projectdiscovery/subfinder/v2/cmd/subfinder@latest
+RUN go install -v github.com/projectdiscovery/httpx/cmd/httpx@latest
 RUN go install -v github.com/s0md3v/smap/cmd/smap@latest
 
 FROM python:3.10.11-buster
