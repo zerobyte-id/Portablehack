@@ -1,36 +1,38 @@
 # Portablehack
 
-Portablehack is a open-source web-based penetration test tool designed to simplify the process of assessing the security.
+Portablehack is a open-source web-based penetration test tool designed to simplify the process of assessing the security and vulnerability. This tool is designed like a Swiss-Knife that has its own features but is interrelated.
+
+![image](https://github.com/zerobyte-id/Portablehack/assets/44427665/ea586dde-48dc-4c6b-b299-1812546a181c)
+
+**Note:** It should be used responsibly and ethically. Always obtain proper authorization before conducting any security assessments and adhere to legal and ethical guidelines.
 
 ## Installation
 
-Clone with git.
-
+1. Clone the "Portablehack" repository by running the following command.
 ```
 git clone https://github.com/zerobyte-id/Portablehack
 ```
 
-Move to `Portablehack` main directory.
-
+2. Navigate to the Portablehack directory.
 ```
 cd Portablehack
 ```
 
-Copy `.env` file.
-
+3. Create a copy of the `.env.example` file and name it `.env`.
 ```
 cp .env.example .env
 ```
 
-Adjust `.env` file.
+4. Open the `.env` file and make any necessary adjustments. You can skip this step if you want to use the default configuration.
 
-Deploy with Docker Compose.
+Please note that some steps require administrative privileges (e.g., sudo) depending on your system configuration.
 
+5. Run the following command to start the deployment using Docker Compose.
 ```
 sudo docker-compose up -d
 ```
 
-Dashboard access `http://your-instance:5000/`.
+Congratulations! You have successfully completed the installation process for Portablehack. The application should now be up and running in `http://your-instance:5000`.
 
 ## Credits
 
