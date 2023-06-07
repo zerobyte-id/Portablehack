@@ -412,8 +412,9 @@ def api_v1_asnumber_get_by_ip(ip):
 def dashboard_index():
 	_header = render_template('_header.html')
 	content = '<div class="p-5"><h1 class="fw-bolder text-success">Welcome to the Jungle!</h1><h1 class="fw-bolder text-secondary">We got fun and games!</h1></div>'
+	_js = render_template('_include.js.html')
 	_footer = render_template('_footer.html')
-	return _header + content + _footer
+	return _header + content + _js + _footer
 
 ########## DASHBOARD INDEX [ENDS] ##########
 
