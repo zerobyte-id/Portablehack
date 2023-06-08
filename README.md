@@ -1,5 +1,5 @@
 <p align="center">
-<img src="https://github.com/zerobyte-id/Portablehack/assets/44427665/10c0e217-4980-4496-b502-6055e39d5549"  width="30%" align="center">
+<img src="https://github.com/zerobyte-id/Portablehack/assets/44427665/10c0e217-4980-4496-b502-6055e39d5549"  width="40%" align="center">
 </p>
 
 ---------------
