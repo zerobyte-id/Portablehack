@@ -213,7 +213,7 @@ def api_v1_domainrecon_scan():
 @app.route('/api/v1/domainrecon/results', methods=['GET'])
 def api_v1_domainrecon_results():
 	try:
-		data = mongodb['list_domains'].find({}, {'_id': False}).sort('timestamp', DESCENDING)
+		data = mongodb['list_domains'].find({}).sort('timestamp', DESCENDING)
 		return jsonify({'status': 'success', 'code': 200, 'response': list(data)}), 200
 	except Exception:
 		logger.error(traceback.format_exc())

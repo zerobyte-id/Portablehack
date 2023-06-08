@@ -1,6 +1,6 @@
       <div class="p-3 mb-3">
         <h1 class="p-3 text-success text-calculator">Subdomain Recon</h1>
-        <p class="text-white">Subdomain Recon by Subfinder.</p>
+        <p class="text-white">Subdomain Recon and DNS Validator with Subfinder & DNSx.</p>
         <form id="formElem">
           <div class="input-group mb-3"><span class="input-group-text bg-success text-white border-success"><svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-swords" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
                 <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
@@ -13,40 +13,58 @@
         <div class="spinner-border text-success" id="loading-spinner" role="status"><span class="visually-hidden">Loading...</span></div>
         <div id="response" class="table-responsive">
           <span id="response-status" class="text-success"></span>
-          <table id="response-text" class="table table-dark table-striped text-white text-start mt-5"></table>
+          <span id="response-text" class="table table-dark table-striped text-white text-start mt-5"></span>
         </div>
       </div>
 
-    </div>
+      <div class="text-white table-responsive">
+        <table id="dataTable" class="table table-striped table-bordered border-1 border-success table-dark text-white nowrap" style="width:100%">
+          <thead>
+            <tr>
+              <th>Host</th>
+              <th>A Record</th>
+              <th>AAAA Record</th>
+              <th>Timestamp</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
 
 {% include '_include.js.html' %}
 
-    <!-- <script type="text/javascript">
+    <script src="https://cdn.datatables.net/1.13.4/js/jquery.dataTables.min.js"></script>
+    <script src="https://cdn.datatables.net/1.13.4/js/dataTables.bootstrap5.min.js"></script>
+    <script type="text/javascript">
       $(document).ready(function() {
-        $("#scanInput").prop("disabled", !1), $("#scanButton").prop("disabled", !1), $("#loading-spinner").hide();
-        $("#formElem").on("submit", async function(e) {
+        $("#scanInput").prop("disabled", !1), $("#scanButton").prop("disabled", !1), $("#loading-spinner").hide(), $.ajax({
+          url: "/api/v1/domainrecon/results",
+          dataType: "json",
+          success: function(e) {
+            $.each(e.response, function(e, t) {
+              var s = $("<tr>");
+              s.append($("<td>").text(t['host'])), s.append($('<td class="text-center">').text(t['a'])), s.append($("<td>").text(t['aaaa'])), s.append($('<td class="text-center">').text(t['timestamp'])), $("#dataTable tbody").append(s)
+            }), $("#dataTable").DataTable()
+          }
+        }), $("#formElem").on("submit", async function(e) {
           $("#scanInput").prop("disabled", !0), $("#scanButton").prop("disabled", !0), $("#response-status").empty(), $("#response-text").empty(), $("#loading-spinner").show(), e.preventDefault();
           var t = $(this).find('input[name="target"]').val();
           try {
             var s = await $.ajax({
-              url: "/api/v1/shodansmap/get/" + t,
-              method: "GET",
+              url: "/api/v1/domainrecon/scan",
+              method: "POST",
               headers: {
                 "Content-Type": "application/json"
               },
+              data: JSON.stringify({
+                target: t
+              }),
               dataType: "json"
             });
-            $("#scanInput").prop("disabled", !1), $("#scanButton").prop("disabled", !1), $("#loading-spinner").hide();
-            $("#response-status").html('<span class="bg-success rounded text-white fw-bolder p-1">' + s.status + "</span>");
-            $.each(s.response, function (i) {
-              $.each(s.response[i], function (x, v) {
-                console.log(x + ': ' + JSON.stringify(v))
-                $('#response-text').append('<tr class="border-bottom border-1 border-success p-1"><th class="text-success fw-bolder p-2 text-capitalize" style="width: 15%">' + x + '</th><td><pre style="white-space: pre-wrap; word-break: break-all">' + JSON.stringify(v, null, 2) + '</pre></td></tr>');
-              });
-            })
+            $("#scanInput").prop("disabled", !1), $("#scanButton").prop("disabled", !1), $("#loading-spinner").hide(), $("#response-status").html('<span class="bg-success rounded text-white fw-bolder p-1">' + s.status + "</span>"), $("#response-text").text(s.response + ".")
           } catch (n) {
             $("#scanInput").prop("disabled", !1), $("#scanButton").prop("disabled", !1), $("#loading-spinner").hide(), console.log(n.responseJSON), void 0 === n.responseJSON ? $("#response-status").html('<span class="bg-danger rounded text-white fw-bolder p-1">Unknown Error</span>') : ($("#response-status").html('<span class="bg-danger rounded text-white fw-bolder p-1">' + n.responseJSON.status + "</span>"), $("#response-text").text(n.responseJSON.response + "."))
           }
         })
       });
-    </script> -->
+    </script>
