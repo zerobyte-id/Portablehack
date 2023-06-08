@@ -406,6 +406,19 @@ def api_v1_asnumber_get_by_ip(ip):
 ########## IPTOASN SECTIONS [END] ##########
 
 
+########## SUBDOMAIN RECON HERE [START] ##########
+
+# DASHBOARD - SHODAN SMAP
+@app.route('/subdomainrecon')
+def subdomainrecon():
+	_header = render_template('_header.html')
+	content = render_template('subdomainrecon.html')
+	_footer = render_template('_footer.html')
+	return _header + content + _footer
+
+########## SUBDOMAIN RECON HERE [END] ##########
+
+
 ########## DASHBOARD INDEX [START] ##########
 
 @app.route('/')
