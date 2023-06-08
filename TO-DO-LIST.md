@@ -1,5 +1,6 @@
 ## TO DO LIST 
-- [ ] Show running progress nmap/nuclei in dashboard
+- [x] Show running progress nmap/nuclei in dashboard
 - [ ] ASNumber Check (IP address)
-- [ ] Subdomain Scanner
+- [x] Subdomain Scanner
 - [ ] Portscanner Customize with Naabu
+- [ ] Export table result (excel/html)
