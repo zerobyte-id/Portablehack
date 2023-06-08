@@ -219,6 +219,14 @@ def api_v1_domainrecon_results():
 		logger.error(traceback.format_exc())
 		return {'status': 'error', 'code': 500, 'response': 'unknown error please contact your administrator'}, 500
 
+# DASHBOARD - DOMAINRECON
+@app.route('/subdomainrecon')
+def subdomainrecon():
+	_header = render_template('_header.html')
+	content = render_template('subdomainrecon.html')
+	_footer = render_template('_footer.html')
+	return _header + content + _footer
+
 ########## DOMAINRECON SECTIONS HERE [END] ##########
 
 
@@ -404,19 +412,6 @@ def api_v1_asnumber_get_by_ip(ip):
 		return {'status': 'error', 'code': 500, 'response': 'unknown error please contact your administrator'}, 500
 
 ########## IPTOASN SECTIONS [END] ##########
-
-
-########## SUBDOMAIN RECON HERE [START] ##########
-
-# DASHBOARD - SHODAN SMAP
-@app.route('/subdomainrecon')
-def subdomainrecon():
-	_header = render_template('_header.html')
-	content = render_template('subdomainrecon.html')
-	_footer = render_template('_footer.html')
-	return _header + content + _footer
-
-########## SUBDOMAIN RECON HERE [END] ##########
 
 
 ########## DASHBOARD INDEX [START] ##########
